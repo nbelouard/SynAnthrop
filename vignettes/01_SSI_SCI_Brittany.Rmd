@@ -19,10 +19,11 @@ This tutorial demonstrates:
 We load necessary packages
 ```{r setup, warning = FALSE, message = FALSE}
 
-library(SynAnthrop)
 library(dplyr)
 library(magrittr)
+library(terra)
 library(ggplot2)
+library(SynAnthrop)
 ```
 
 
@@ -33,18 +34,42 @@ library(ggplot2)
 Two types of data are required to run the SSI function: (i) a raster describing the spatial gradient of anthropogenization of the region to be analysed, and (ii) a database of species occurrences, with XY coordinates and corresponding sampling dates.
 
 
-The raster map used here is extracted from the French Naturalness Map, developed by [Guetté et al.(2021)](https://uicn.fr/CartNat/CartNat_Donnees/Note_technique_m%C3%A9thodologique/Projet%20CARTNAT_note%20technique_2021.pdf) and cropped to the region of interest, Brittany. You can download the cropped map at [url]. Place it in the `data/amphibiansBrittany` folder with the name `naturalnessMap.tif`.
+The raster map used here is extracted from the French Naturalness Map, developed by [Guetté et al.(2021)](https://uicn.fr/CartNat/CartNat_Donnees/Note_technique_m%C3%A9thodologique/Projet%20CARTNAT_note%20technique_2021.pdf). Download the zipped folder called "Donnees_cartographiques" at [this link](https://uicn.fr/CartNat/CartNat_Donnees/). Unzip it, and place the file "Layer4_FINAL.tif" in the `data/amphibiansBrittany` folder of the SynAnthrop package. We will crop this map to the Brittany region.
 
 ```{r load spatial data}
 
-# load the raster file
+############ Go the `raster` route (slower)
 ras_raw <- raster::raster(file.path(here::here(), 
                                     "data", 
                                     "amphibiansBrittany", 
-                                    "naturalnessMap.tif"))
+                                    "Layer4_FINAL.tif"))
 
-# create an object to visualize the raster
-rast_to_plot <- terra::rast(ras_raw)
+# Create a bounding box to crop the map to Brittany, in WGS84
+brittany_extent_wgs84 <- raster::extent(-5.5, -0.8, 47.2, 48.9)
+# Convert the extent to a sf object
+brittany_extent_wgs84 <- sf::st_as_sf(as(brittany_extent_wgs84, "SpatialPolygons"))
+sf::st_crs(brittany_extent_wgs84) <- sf::st_crs("+proj=longlat +datum=WGS84")  # Set the original CRS
+# Define the target CRS
+target_crs <- sf::st_crs(ras_raw)
+# Reproject the SpatialPolygons object to the target CRS
+brittany_extent_lcc <- sf::st_transform(brittany_extent_wgs84, target_crs)
+# Crop to Brittany
+ras_brittany <- raster::crop(ras_raw, brittany_extent_lcc)
+
+
+########### Go the `terra` route (not working yet)
+# ras_raw <- terra::rast(file.path(here::here(), 
+#                                     "data", 
+#                                     "amphibiansBrittany", 
+#                                     "Layer4_FINAL.tif"))
+# 
+# # Create a bounding box to crop the map to Brittany, in WGS84
+# brittany_extent_wgs84 <- terra::ext(-5.5, -0.8, 47.2, 48.9)
+# # Convert it to the Lambert Conformal Conic projection
+# brittany_extent_lcc <- terra::project(brittany_extent_wgs84, from =  "EPSG:4326" , to = ras_raw)
+# 
+# # Crop the raster to the extent of Brittany
+# ras_brittany_terra <- terra::crop(ras_raw, brittany_extent_lcc)
 ```
 
 Next, we load the occurrence data to be evaluated, and take a look at the structure required for the analysis. Note that sampling years need to correspond to the years used to build the naturalness map for the analysis to make the most sense.
@@ -69,16 +94,20 @@ The table contains one row per species, site and year sampled, with a total of 5
 # eliminate points with missing coordinates
 missingcoord <- dim(spOcc %>% filter(is.na(Y) | is.na(Y)))[1]
 spOcc %<>% filter(!is.na(Y) | !is.na(Y))
-print(paste(missingcoord, "point(s) were eliminated because of missing coordinates"))
+print(paste(missingcoord, "species point(s) were eliminated because of missing coordinates"))
 ```
 
 At this point, it is useful to plot the data to make sure the two datasets use the same coordinate system and everything looks as expected.
 
 ```{r plot map, fig.width = 10}
 
+ras_brittany_terra <- terra::rast(ras_brittany)
+
 ggplot() + 
-  tidyterra::geom_spatraster(data = rast_to_plot) +
+  tidyterra::geom_spatraster(data = ras_brittany_terra) +
   geom_point(data = spOcc, aes(x = X, y = Y, color = Year)) +
+  # geom_point(data = hullCoord, aes(x = x, y = y), col = "red") +
+  # geom_point(data = hullCoord_terra, aes(x = x, y = y), col = "black") 
   scale_colour_gradient(labels = function(x) sprintf("%.0f", x),
                         low = "darkgray", high = "black") +
   tidyterra::scale_fill_whitebox_c(palette = "muted", direction= -1,
@@ -99,10 +128,10 @@ If you are in interactive mode, you will be prompted to validate the species lis
 
 ```{r execute ssi function}
 
-ssi_results <- ssi(r = ras_raw, 
-                   resolution = c(100, 200, 250),
+ssi_results <- ssi(r = ras_brittany, 
+                   resolution = c(300, 500),
                    data = spOcc,  
-                   sim = 500, 
+                   sim = 100, 
                    threshold = 30)
 
 ```
@@ -136,7 +165,7 @@ Here we combine these two tables to visualize effect sizes and SSI obtained with
 # keep only data for resolution 100
 # associate the SSI to the detailed effect sizes
 sub_effsize_res <- effsize_res %>% 
-  filter(Resolution == 100) %>% 
+  filter(Resolution == 300) %>% 
   left_join(sp_ssi, by = c("Species", "Resolution"))
 
 # make the score a factor
@@ -154,7 +183,7 @@ ggplot(sub_effsize_res,
   ylab("Effect size") +
   xlab("Species") +
   theme(axis.title.y = element_blank()) +
-  theme(legend.position = c(0.9, 0.2)) +
+  theme(legend.position.inside = c(0.9, 0.2)) +
   theme_bw()
 
 ```
@@ -198,7 +227,7 @@ We can visualize the locations of observations and of one set of randomly select
 ```{r plot distribution map, fig.width = 10}
 
 # we select one resolution, one set of simulated points, and the observed points
-sub_points <- points %>% filter(Resolution == "100",
+sub_points <- points %>% filter(Resolution == "300",
                                 simulation %in% c(1, "no"))
 
 ggplot() + 
