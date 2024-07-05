@@ -53,6 +53,9 @@ ssi <- function(r = raster,
   for(value in resolution) { 
     
     
+    
+    
+    
     # STEP 1 | Naturalness raster file: Aggregate cells at desired resolution ####
     
     # raw raster files may be too large for the intended analysis. Cells are aggregated
@@ -65,9 +68,10 @@ ssi <- function(r = raster,
     # Extract naturalness raster values associated with each cell
     ras.value <- data.frame(value = terra::values(ras)) 
     ras.value %<>% 
-      mutate(Cell = as.numeric(rownames(ras.value))) %>% 
+      dplyr::mutate(Cell = as.numeric(rownames(ras.value))) %>% 
       # remove cells without naturalness values (e.g. offshore cells)
       na.omit() 
+
     
     
     
@@ -81,27 +85,31 @@ ssi <- function(r = raster,
     
     # aggregate observations in cells at raster resolution based on XY coordinates
     data_res <- data # create a dataset from this resolution
-    data_res %<>% mutate(Cell = terra::cellFromXY(ras, data_res %>% select(X, Y)))
+    data_res %<>% dplyr::mutate(Cell = terra::cellFromXY(ras, data_res %>% dplyr::select(X, Y)))
     missingcoord <- dim(data_res %>% filter(is.na(Cell)))[1]
-    data_res %<>% filter(!is.na(Cell))
-    cat(paste(missingcoord, "observation(s) were eliminated because of mismatch with the raster file\n"))
+    data_res %<>% dplyr::filter(!is.na(Cell))
+    cat(paste(Sys.time(), missingcoord, "observation(s) were eliminated because of mismatch with the raster file\n"))
 
     # calculate the number of years each cell has been visited
     x_visits <- data_res %>%
-      group_by(Cell) %>%
-      summarize(nYearVisited = n_distinct(Year))
+      dplyr::group_by(Cell) %>%
+      dplyr::summarize(nYearVisited = n_distinct(Year))
   
     # compile a data.frame with the number of visits for all raster cells, 
     # including non-visited cells (0)
     x_visits_all <- data.frame(Cell = seq(1:terra::ncell(ras))) %>% 
       dplyr::full_join(x_visits, by = "Cell") %>% 
-      mutate(nYearVisited = ifelse(is.na(nYearVisited), 0, nYearVisited)) 
-
+      dplyr::mutate(nYearVisited = ifelse(is.na(nYearVisited), 0, nYearVisited)) 
+    
     # obtain XY coordinates of raster cells
     cellCoord <- data.frame(terra::xyFromCell(ras, x_visits_all$Cell)) 
-    cellCoord %<>% mutate(Cell = as.numeric(row.names(cellCoord)))
-    x_visits_all %<>% left_join(cellCoord, by = "Cell")
+    cellCoord %<>% dplyr::mutate(Cell = as.numeric(row.names(cellCoord)))
+    x_visits_all %<>% dplyr::left_join(cellCoord, by = "Cell")
 
+    cat(paste(Sys.time(), "At this resolution, the landscape is divided into", length(unique(x_visits_all$x)), "*", length(unique(x_visits_all$y)), 
+              "cells (total =", dim(x_visits_all)[1], "). You chose to evaluate species present in more than", threshold, "cells."))
+    
+    
     # interpolate sampling effort by kernel density 
     kernel_sampling <- ks::kde(x = x_visits_all %>% select(x, y),
                                w = x_visits_all$nYearVisited)
@@ -118,30 +126,37 @@ ssi <- function(r = raster,
     
     # sum the abundances per species per cell
     data_res %<>%
-      group_by(Cell, Species) %>%
-      summarize(SumAbundance = sum(Abundance))
+      dplyr::group_by(Cell, Species) %>%
+      dplyr::summarize(SumAbundance = sum(Abundance))
     
     # add the XY coordinates of the cell (from the raster, not the original XY coordinates)
     data_res[,c("x","y")] <- terra::xyFromCell(ras,data_res$Cell)
     
     # count the number of cells in which each species was detected
     spDetection <- data_res %>% 
-      group_by(Species) %>%
-      summarize(nCellsPresent = n_distinct(Cell))
+      dplyr::group_by(Species) %>%
+      dplyr::summarize(nCellsPresent = dplyr::n_distinct(Cell))
     
     # species will only be evaluated if they have been detected in more than 
     # 'threshold' cells
-    spDetection %<>% mutate(evaluation = ifelse(nCellsPresent > threshold, 
+    spDetection %<>% dplyr::mutate(evaluation = ifelse(nCellsPresent > threshold, 
                                                 "evaluated", "not evaluated"))
-    spEvaluated <- spDetection %>% filter(evaluation == "evaluated")
-    spEvaluated %<>% mutate(spNum = seq(1:nrow(spEvaluated)))
+    spEvaluated <- spDetection %>% dplyr::filter(evaluation == "evaluated")
+    # stop the execution if no species meets this criterion
+    if (dim(spEvaluated)[1] == 0) {
+      stop(paste(Sys.time(), "No species is present in the minimal requested number of cells. Consider lowering threshold and/or resolution. Execution stopped."))
+    }
+    
+    # number species to be evaluated
+    spEvaluated %<>% dplyr::mutate(spNum = seq(1:nrow(spEvaluated)))
     
     # subset the dataset to keep only species that will be evaluated
-    x_evaluated <- data_res %>% filter(Species %in% unique(spEvaluated$Species)) %>% 
-      mutate(variable = "Observed")
+    x_evaluated <- data_res %>% dplyr::filter(Species %in% unique(spEvaluated$Species)) %>% 
+      dplyr::mutate(variable = "Observed")
     
     cat("Species that will be evaluated are:\n")
     cat(spEvaluated$Species, sep = "\n")
+    
     
     
     
@@ -165,7 +180,7 @@ ssi <- function(r = raster,
       
       # prompt species evaluated
       cat(paste(Sys.time(), sp))
-      cat(paste0(" (", spEvaluated %>% filter(Species == sp) %>% 
+      cat(paste0(" (", spEvaluated %>% dplyr::filter(Species == sp) %>% 
                    select(spNum), "/", max(spEvaluated$spNum), ")\n"))
       
       
@@ -177,21 +192,24 @@ ssi <- function(r = raster,
       sp_points <- sf::st_as_sf(x_evaluated %>% filter(Species == sp), 
                                 coords = c("x", "y"), crs = sf::st_crs(ras))
       sp_hull <- sf::st_convex_hull(sf::st_union(sp_points)) 
-
+      # sp_hull_terra <- vect(sp_hull) # convert the convex hull to an object compatible with terra
+      
       # attribute raster cell numbers to cells of the convex hull
       hullCoord <- tabularaster::cellnumbers(ras, sp_hull) %>%
-        rename(Cell = "cell_")
+        rename(cell = "cell_")
+      # hullCoord_terra <- terra::extract(ras, sp_hull_terra, cells = T)
+
       # convert cell numbers to XY coordinates
-      hullCoord[,c("x","y")] <- terra::xyFromCell(ras, hullCoord$Cell)
+      hullCoord[,c("x","y")] <- terra::xyFromCell(ras, hullCoord$cell)
       # select cells within the convex hull that are in the naturalness dataset 
       # (this excludes offshore points in cases where the convex hull includes marine
       # areas) 
-      hullCoord %<>% filter(Cell %in% ras.value$Cell)
+      hullCoord %<>% dplyr::filter(cell %in% ras.value$Cell)
 
       # select kernel weights (sampling effort for each cell within the convex hull)
       kernel_weights <- data.frame(weight = kernel_sampling$w,
                          Cell = seq(1:length(kernel_sampling$w))) %>%
-        filter(Cell %in% hullCoord$Cell)
+        dplyr::filter(Cell %in% hullCoord$cell)
       
       
     
@@ -215,13 +233,14 @@ ssi <- function(r = raster,
         
         
         # resample cells within the convex hull, with their associated kernel weight
-        sp_resampled <- sample_n(kernel_weights, #x_visits_all,
-                                 size = spEvaluated %>% filter(Species == sp) %>% pull(nCellsPresent), 
+        sp_resampled <- dplyr::sample_n(kernel_weights, #x_visits_all,
+                                 size = spEvaluated %>% dplyr::filter(Species == sp) %>% 
+                                   dplyr::pull(nCellsPresent), 
                                  replace = FALSE,
                                  weight = weight) # weight = nYearVisited
         
         # assign simulation number and species
-        sp_resampled %<>% mutate(simulation = i,
+        sp_resampled %<>% dplyr::mutate(simulation = i,
                                 Species = sp,
                                 variable = "Null")
         # add sampled data from this simulation to the dataset of this species
@@ -239,9 +258,9 @@ ssi <- function(r = raster,
     nullFull[,c("x","y")] <- terra::xyFromCell(ras, nullFull$Cell)
     
     # bind the null and observed datasets
-    datasetFinal <- rbind(nullFull %>% select(-weight),#-nYearVisited),  
-                            x_evaluated %>% select(-SumAbundance) %>% mutate(simulation = "no"))
-    datasetFinal %<>% mutate(Resolution = value) 
+    datasetFinal <- rbind(nullFull %>% select(-weight), 
+                            x_evaluated %>% dplyr::select(-SumAbundance) %>% dplyr::mutate(simulation = "no"))
+    datasetFinal %<>% dplyr::mutate(Resolution = value) 
 
     
     
@@ -274,7 +293,7 @@ ssi <- function(r = raster,
       # select a single simulation and the observed data, add naturalness raster values
       runN <- datasetFinal %>% dplyr::filter(simulation == run |
                                             simulation == "no") %>% 
-        inner_join(ras.value, by = "Cell") 
+        dplyr::inner_join(ras.value, by = "Cell") 
       # TODO: note that some points don't have naturalness values here!
       # TODO: this ends up with different sample sizes for the simulation and the observed
       # data in some cases, visible in the third result data frame.
@@ -285,11 +304,11 @@ ssi <- function(r = raster,
       for(sp in unique(runN$Species)) {
         
         # select one species
-        runNSp <- runN %>% filter(Species == sp)
+        runNSp <- runN %>% dplyr::filter(Species == sp)
         # calculate the effect size: (simulated mean - observed mean)/estimated sd
         effSizesrunNSp <- runNSp %>% 
           rstatix::cohens_d(value ~ variable) %>% # equal = TRUE ?
-          mutate(Species = sp,
+          dplyr::mutate(Species = sp,
                  Run = run,
                  Resolution = value)
         # add effect size to the list
@@ -308,13 +327,13 @@ ssi <- function(r = raster,
 
     # synthesize effect sizes per species
     effSizesFull_summary <- effSizesFull %>%
-      group_by(Species) %>%
-      summarise(mean = mean(effsize), 
+      dplyr::group_by(Species) %>%
+      dplyr::summarise(mean = mean(effsize), 
                 nRun = n())
     
     # rescale effect sizes to obtain the synanthropy score per species
     effSizesFull_summary %<>% 
-      mutate(Index = round(scales::rescale(mean, to = c(10, 1))),
+      dplyr::mutate(Index = round(scales::rescale(mean, to = c(10, 1))),
              Resolution = value)
     
     
