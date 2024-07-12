@@ -12,8 +12,10 @@ editor_options:
   chunk_output_type: console
 ---
 
+The `SynAnthrop` package computes a Species Synanthropy Index (SSI) across different species over a large territory covering different degrees of anthropisation. An averaged SSI per community then allows to determine the sensitivity of different communities to anthropogenic pressures.
+
 This tutorial demonstrates:
-- the calculation of the Species Synanthropy Index (SSI) and possible subsequent analyses and graphs, based on an example dataset of amphibian populations collected in western France
+- the calculation of the SSI and possible subsequent analyses and graphs, based on an example dataset of amphibian populations collected in western France
 - the application of the SSI at the community scale, the Synanthropy Community Score (SCS) to estimate the overall sensitivity of assemblages to land use change.
 
 We load necessary packages
@@ -31,45 +33,25 @@ library(SynAnthrop)
 
 ## Setup
 
-Two types of data are required to run the SSI function: (i) a raster describing the spatial gradient of anthropogenization of the region to be analysed, and (ii) a database of species occurrences, with XY coordinates and corresponding sampling dates.
-
+Two types of data are required to run the SSI function: (i) a raster describing the spatial gradient of anthropogenization of the region to be analysed, and (ii) a database of species occurrences, with XY coordinates and sampling dates.
 
 The raster map used here is extracted from the French Naturalness Map, developed by [Guetté et al.(2021)](https://uicn.fr/CartNat/CartNat_Donnees/Note_technique_m%C3%A9thodologique/Projet%20CARTNAT_note%20technique_2021.pdf). Download the zipped folder called "Donnees_cartographiques" at [this link](https://uicn.fr/CartNat/CartNat_Donnees/). Unzip it, and place the file "Layer4_FINAL.tif" in the `data/amphibiansBrittany` folder of the SynAnthrop package. We will crop this map to the Brittany region.
 
 ```{r load spatial data}
 
-############ Go the `raster` route (slower)
-ras_raw <- raster::raster(file.path(here::here(), 
-                                    "data", 
-                                    "amphibiansBrittany", 
+# load file
+ras_raw <- terra::rast(file.path(here::here(),
+                                    "data",
+                                    "amphibiansBrittany",
                                     "Layer4_FINAL.tif"))
 
 # Create a bounding box to crop the map to Brittany, in WGS84
-brittany_extent_wgs84 <- raster::extent(-5.5, -0.8, 47.2, 48.9)
-# Convert the extent to a sf object
-brittany_extent_wgs84 <- sf::st_as_sf(as(brittany_extent_wgs84, "SpatialPolygons"))
-sf::st_crs(brittany_extent_wgs84) <- sf::st_crs("+proj=longlat +datum=WGS84")  # Set the original CRS
-# Define the target CRS
-target_crs <- sf::st_crs(ras_raw)
-# Reproject the SpatialPolygons object to the target CRS
-brittany_extent_lcc <- sf::st_transform(brittany_extent_wgs84, target_crs)
-# Crop to Brittany
-ras_brittany <- raster::crop(ras_raw, brittany_extent_lcc)
+brittany_extent_wgs84 <- terra::ext(-5.5, -0.8, 47.2, 48.9)
+# Convert it to the Lambert Conformal Conic projection
+brittany_extent_lcc <- terra::project(brittany_extent_wgs84, from =  "EPSG:4326" , to = ras_raw)
 
-
-########### Go the `terra` route (not working yet)
-# ras_raw <- terra::rast(file.path(here::here(), 
-#                                     "data", 
-#                                     "amphibiansBrittany", 
-#                                     "Layer4_FINAL.tif"))
-# 
-# # Create a bounding box to crop the map to Brittany, in WGS84
-# brittany_extent_wgs84 <- terra::ext(-5.5, -0.8, 47.2, 48.9)
-# # Convert it to the Lambert Conformal Conic projection
-# brittany_extent_lcc <- terra::project(brittany_extent_wgs84, from =  "EPSG:4326" , to = ras_raw)
-# 
-# # Crop the raster to the extent of Brittany
-# ras_brittany_terra <- terra::crop(ras_raw, brittany_extent_lcc)
+# Crop the raster to the extent of Brittany
+ras_brittany <- terra::crop(ras_raw, brittany_extent_lcc)
 ```
 
 Next, we load the occurrence data to be evaluated, and take a look at the structure required for the analysis. Note that sampling years need to correspond to the years used to build the naturalness map for the analysis to make the most sense.
@@ -101,13 +83,9 @@ At this point, it is useful to plot the data to make sure the two datasets use t
 
 ```{r plot map, fig.width = 10}
 
-ras_brittany_terra <- terra::rast(ras_brittany)
-
 ggplot() + 
-  tidyterra::geom_spatraster(data = ras_brittany_terra) +
+  tidyterra::geom_spatraster(data = ras_brittany) +
   geom_point(data = spOcc, aes(x = X, y = Y, color = Year)) +
-  # geom_point(data = hullCoord, aes(x = x, y = y), col = "red") +
-  # geom_point(data = hullCoord_terra, aes(x = x, y = y), col = "black") 
   scale_colour_gradient(labels = function(x) sprintf("%.0f", x),
                         low = "darkgray", high = "black") +
   tidyterra::scale_fill_whitebox_c(palette = "muted", direction= -1,
@@ -119,21 +97,20 @@ ggplot() +
 
 ## SSI calculation
 
-The function was designed to calculate SSI automatically from a data set (for a taxon, a territory and a period). Several raster resolutions can be evaluated in a row.
+The function was designed to calculate SSI automatically from a dataset (for a taxon, a territory and a period). Several raster resolutions can be evaluated in a row.
 
-A null distribution is generated by randomly selecting sites within the species range. The effect of the studied gradient is measured by the effect size between the simulated and the observed species distributions, repeated n times. A synanthropy score, the SSI is assigned to each species based on the average difference between the null and observed distributions (from 1 to 10).
+A null distribution is generated by randomly selecting sites within the species range. The effect of the studied gradient is measured by the effect size between the simulated and the observed species distributions, repeated n times. A synanthropy score (SSI) is assigned to each species based on the average difference between the null and observed distributions (from 1 to 10).
 
 Here, we execute the function for 3 resolutions (100, 200, 250), with 500 simulations each. Each species must have been found in a minimum of 30 cells to be evaluated (threshold argument).
-If you are in interactive mode, you will be prompted to validate the species list detected in the dataset. Make sure that there are no typos or synonyms, as each species will be considered separately for the analyses. A warning message may pop up but will not influence the process. 
+If you are in interactive mode, you will be prompted to validate the species list detected in the dataset. Make sure that there are no typos or synonyms, as each species will be considered separately for the analyses. 
 
 ```{r execute ssi function}
 
-ssi_results <- ssi(r = ras_brittany, 
-                   resolution = c(300, 500),
+ssi_results <- SynAnthrop::ssi(r = ras_brittany, 
+                   resolution = c(100, 200, 250),
                    data = spOcc,  
-                   sim = 100, 
+                   sim = 500, 
                    threshold = 30)
-
 ```
 
 
@@ -144,7 +121,7 @@ The SSI function produces 3 data frames.
 
 ### SSI and effect sizes per species
 
-The first table contains the SSI calculated per species and resolution. It is a summary table containing one line per species per resolution, with the mean effect size, the number of simulations, and the SSI (1 to 10).
+The first table contains the SSI calculated per species and resolution. It is a summary table containing one line per species per resolution, with the mean effect size, the number of simulations, and the SSI Index (1 to 10).
 
 ```{r summary of synanthropy index}
 
@@ -165,7 +142,7 @@ Here we combine these two tables to visualize effect sizes and SSI obtained with
 # keep only data for resolution 100
 # associate the SSI to the detailed effect sizes
 sub_effsize_res <- effsize_res %>% 
-  filter(Resolution == 300) %>% 
+  filter(Resolution == 100) %>% 
   left_join(sp_ssi, by = c("Species", "Resolution"))
 
 # make the score a factor
@@ -227,7 +204,7 @@ We can visualize the locations of observations and of one set of randomly select
 ```{r plot distribution map, fig.width = 10}
 
 # we select one resolution, one set of simulated points, and the observed points
-sub_points <- points %>% filter(Resolution == "300",
+sub_points <- points %>% filter(Resolution == "100",
                                 simulation %in% c(1, "no"))
 
 ggplot() + 
