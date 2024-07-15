@@ -47,7 +47,13 @@ ssi <- function(r = raster,
       stop("Execution stopped.")
     }
   }
-
+  
+  # Check if a temporal scale is available for weighing sampling effort
+  if(!"Year" %in% colnames(data)) { 
+    cat("No \"Year\" variable available, all observations will be considered
+        from the same year \n")
+  } 
+  
   
   # loop over each value listed in argument "resolution"
   for(res in resolution) { 
@@ -70,8 +76,8 @@ ssi <- function(r = raster,
       rename(value = 1) %>% # rename column to "value"
       dplyr::mutate(cell = as.numeric(rownames(.))) %>% 
       na.omit() # remove cells without a naturalness value
-      
-  
+    
+    
     
     
     
@@ -89,30 +95,41 @@ ssi <- function(r = raster,
     data_res %<>% dplyr::filter(cell %in% ras.value$cell) # select only observations for which there is a naturalness score
     cat(paste(Sys.time(), missingcoord, "observation(s) were eliminated because of missing naturalness values\n"))
 
-    # calculate the number of years each cell has been visited
-    x_visits <- data_res %>%
-      dplyr::group_by(cell) %>%
-      dplyr::summarize(nYearVisited = n_distinct(Year))
-  
-    # compile a data.frame with the number of visits for all raster cells, including non-visited cells (0)
-    x_visits_all <- ras.value %>% # start from cells
-      dplyr::full_join(x_visits, by = "cell") %>%  # join cells and visits
-      dplyr::mutate(nYearVisited = ifelse(is.na(nYearVisited), 0, nYearVisited)) %>%  # replace NA (unvisited cell) by 0 
-      dplyr::mutate(data.frame(terra::xyFromCell(ras, .$cell)))
+
+    # If Year is available, calculate number of years of visits
+    if("Year" %in% colnames(data_res)) { 
+      # calculate the number of years each cell has been visited
+      x_visits <- data_res %>%
+        dplyr::group_by(cell) %>%
+        dplyr::summarize(nYearVisited = n_distinct(Year))
     
-    cat(paste(Sys.time(), "At this resolution, the landscape is divided into", length(unique(x_visits_all$x)), 
-              "*", length(unique(x_visits_all$y)), 
-              "cells (total =", dim(x_visits_all)[1], "cells).\n You chose to evaluate species present in more than", 
-              threshold, "cells.\n"))
-    
-    
-    # interpolate sampling effort by kernel density 
-    suppressWarnings(kernel_sampling <- ks::kde(x = x_visits_all %>% select(x, y),
-                               w = x_visits_all$nYearVisited))
-    # the "Weights don't sum to sample size - they have been scaled accordingly" warning is silenced
-    
-    
-    
+    } else {
+      # attribute one year per cell
+      x_visits <- data_res %>%
+        distinct(Cell) %>%
+        mutate(nYearVisited = 1)
+    }
+      
+
+      # compile a data.frame with the number of visits for all raster cells, including non-visited cells (0)
+      x_visits_all <- ras.value %>% # start from cells
+        dplyr::full_join(x_visits, by = "cell") %>%  # join cells and visits
+        dplyr::mutate(nYearVisited = ifelse(is.na(nYearVisited), 0, nYearVisited)) %>%  # replace NA (unvisited cell) by 0 
+        dplyr::mutate(data.frame(terra::xyFromCell(ras, .$cell)))
+      
+      cat(paste(Sys.time(), "At this resolution, the landscape is divided into", length(unique(x_visits_all$x)), 
+                "*", length(unique(x_visits_all$y)), 
+                "cells (total =", dim(x_visits_all)[1], "cells).\n You chose to evaluate species present in more than", 
+                threshold, "cells.\n"))
+      
+      
+      # interpolate sampling effort by kernel density 
+      suppressWarnings(kernel_sampling <- ks::kde(x = x_visits_all %>% select(x, y),
+                                                  w = x_visits_all$nYearVisited))
+      # the "Weights don't sum to sample size - they have been scaled accordingly" warning is silenced
+      
+      
+      
     
     
     # STEP 3 | Dataset: identify species to evaluate ####
@@ -197,6 +214,8 @@ ssi <- function(r = raster,
       # (this excludes offshore points in cases where the convex hull includes marine areas) 
       hullCoord %<>% dplyr::filter(cell %in% ras.value$cell)
 
+      
+      
       # select kernel weights (sampling effort for each cell within the convex hull)
       kernel_weights <- data.frame(weight = kernel_sampling$w,
                          cell = x_visits_all$cell) %>%
@@ -350,12 +369,10 @@ ssi <- function(r = raster,
     cat(paste(Sys.time(), "Analysis finished for resolution", res, "\n"))
   } # end of resolution loop
   
-  
-  
+
   # create a list for all 3 tables
   results <- list("speciesScores" = speciesScores, "effSizes" = effSizes, "samplesList" = samplesList) 
-  
-  cat(paste(Sys.time(), "All done."))
+  cat(paste(Sys.time(), "Analysis completed."))
   
   return(results)
   

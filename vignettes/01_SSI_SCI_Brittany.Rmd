@@ -26,6 +26,7 @@ library(magrittr)
 library(terra)
 library(ggplot2)
 library(SynAnthrop)
+library(sf)
 ```
 
 
