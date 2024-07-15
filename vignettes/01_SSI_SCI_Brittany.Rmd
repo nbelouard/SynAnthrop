@@ -298,11 +298,11 @@ We can now visualize our new index.
 
 # Create spatial objects
 ex_com_map <- sf::st_as_sf(ex_com_sites, coords = c("X", "Y"), crs = 2154)
-rast_to_plot2 <- raster::crop(rast_to_plot, ex_com_map)
+ras_com <- raster::crop(ras_brittany, ex_com_map)
 
 # Plot the map
 ggplot() + 
-  tidyterra::geom_spatraster(data = rast_to_plot2, alpha = 0.8) +
+  tidyterra::geom_spatraster(data = ras_com, alpha = 0.8) +
   geom_sf(data = ex_com_map, aes(color = SCIw, size = Richness)) +
   scale_colour_gradient(low = "yellow", high = "darkgreen") +
   tidyterra::scale_fill_whitebox_c(palette = "muted", direction=-1) +

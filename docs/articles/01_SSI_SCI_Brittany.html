@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculation and application of the Species Synanthropy Index: tutorial • SynAnthrop</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
@@ -76,7 +76,7 @@ Synanthropy Index: tutorial</h1>
 Belouard<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>
 </h4>
             
-            <h4 data-toc-skip class="date">2023-10-10</h4>
+            <h4 data-toc-skip class="date">2024-07-15</h4>
       
       
       <div class="hidden name"><code>01_SSI_SCI_Brittany.Rmd</code></div>
@@ -85,18 +85,23 @@ Belouard<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>
 
     
     
-<p>This tutorial demonstrates: - the calculation of the Species
-Synanthropy Index (SSI) and possible subsequent analyses and graphs,
-based on an example dataset of amphibian populations collected in
-western France - the application of the SSI at the community scale, the
-Synanthropy Community Score (SCS) to estimate the overall sensitivity of
-assemblages to land use change.</p>
+<p>The <code>SynAnthrop</code> package computes a Species Synanthropy
+Index (SSI) across different species over a large territory covering
+different degrees of anthropisation. An averaged SSI per community then
+allows to determine the sensitivity of different communities to
+anthropogenic pressures.</p>
+<p>This tutorial demonstrates: - the calculation of the SSI and possible
+subsequent analyses and graphs, based on an example dataset of amphibian
+populations collected in western France - the application of the SSI at
+the community scale, the Synanthropy Community Score (SCS) to estimate
+the overall sensitivity of assemblages to land use change.</p>
 <p>We load necessary packages</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SynAnthrop</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://magrittr.tidyverse.org" class="external-link">magrittr</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/" class="external-link">terra</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SynAnthrop</span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="species-synanthropy-index-an-example-with-amphibian-populations-in-western-france">1- Species Synanthropy Index: an example with amphibian populations
 in western France<a class="anchor" aria-label="anchor" href="#species-synanthropy-index-an-example-with-amphibian-populations-in-western-france"></a>
@@ -107,42 +112,34 @@ in western France<a class="anchor" aria-label="anchor" href="#species-synanthrop
 <p>Two types of data are required to run the SSI function: (i) a raster
 describing the spatial gradient of anthropogenization of the region to
 be analysed, and (ii) a database of species occurrences, with XY
-coordinates and corresponding sampling dates.</p>
+coordinates and sampling dates.</p>
 <p>The raster map used here is extracted from the French Naturalness
 Map, developed by <a href="https://uicn.fr/CartNat/CartNat_Donnees/Note_technique_m%C3%A9thodologique/Projet%20CARTNAT_note%20technique_2021.pdf" class="external-link">Guetté
-et al.(2021)</a> and cropped to the region of interest, Brittany. You
-can download the cropped map at [url]. Place it in the
-<code>data/amphibiansBrittany</code> folder with the name
-<code>naturalnessMap.tif</code>.</p>
+et al.(2021)</a>. Download the zipped folder called
+“Donnees_cartographiques” at <a href="https://uicn.fr/CartNat/CartNat_Donnees/" class="external-link">this link</a>. Unzip it,
+and place the file “Layer4_FINAL.tif” in the
+<code>data/amphibiansBrittany</code> folder of the SynAnthrop package.
+We will crop this map to the Brittany region.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># load the raster file</span></span>
-<span><span class="va">ras_raw</span> <span class="op">&lt;-</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/raster/man/raster.html" class="external-link">raster</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="op">)</span>, </span>
-<span>                                    <span class="st">"data"</span>, </span>
-<span>                                    <span class="st">"amphibiansBrittany"</span>, </span>
-<span>                                    <span class="st">"naturalnessMap.tif"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Please note that rgdal will be retired during October 2023,</span></span>
-<span><span class="co">## plan transition to sf/stars/terra functions using GDAL and PROJ</span></span>
-<span><span class="co">## at your earliest convenience.</span></span>
-<span><span class="co">## See https://r-spatial.org/r/2023/05/15/evolution4.html and https://github.com/r-spatial/evolution</span></span>
-<span><span class="co">## rgdal: version: 1.6-7, (SVN revision 1203)</span></span>
-<span><span class="co">## Geospatial Data Abstraction Library extensions to R successfully loaded</span></span>
-<span><span class="co">## Loaded GDAL runtime: GDAL 3.5.2, released 2022/09/02</span></span>
-<span><span class="co">## Path to GDAL shared files: C:/Program Files/R/R-4.2.1/library/rgdal/gdal</span></span>
-<span><span class="co">## GDAL binary built with GEOS: TRUE </span></span>
-<span><span class="co">## Loaded PROJ runtime: Rel. 8.2.1, January 1st, 2022, [PJ_VERSION: 821]</span></span>
-<span><span class="co">## Path to PROJ shared files: C:/Program Files/R/R-4.2.1/library/rgdal/proj</span></span>
-<span><span class="co">## PROJ CDN enabled: FALSE</span></span>
-<span><span class="co">## Linking to sp version:2.0-0</span></span>
-<span><span class="co">## To mute warnings of possible GDAL/OSR exportToProj4() degradation,</span></span>
-<span><span class="co">## use options("rgdal_show_exportToProj4_warnings"="none") before loading sp or rgdal.</span></span></code></pre>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># create an object to visualize the raster</span></span>
-<span><span class="va">rast_to_plot</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">ras_raw</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># load file</span></span>
+<span><span class="va">ras_raw</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>                                    <span class="st">"data"</span>,</span>
+<span>                                    <span class="st">"amphibiansBrittany"</span>,</span>
+<span>                                    <span class="st">"Layer4_FINAL.tif"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create a bounding box to crop the map to Brittany, in WGS84</span></span>
+<span><span class="va">brittany_extent_wgs84</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/ext.html" class="external-link">ext</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5.5</span>, <span class="op">-</span><span class="fl">0.8</span>, <span class="fl">47.2</span>, <span class="fl">48.9</span><span class="op">)</span></span>
+<span><span class="co"># Convert it to the Lambert Conformal Conic projection</span></span>
+<span><span class="va">brittany_extent_lcc</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/project.html" class="external-link">project</a></span><span class="op">(</span><span class="va">brittany_extent_wgs84</span>, from <span class="op">=</span>  <span class="st">"EPSG:4326"</span> , to <span class="op">=</span> <span class="va">ras_raw</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Crop the raster to the extent of Brittany</span></span>
+<span><span class="va">ras_brittany</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crop.html" class="external-link">crop</a></span><span class="op">(</span><span class="va">ras_raw</span>, <span class="va">brittany_extent_lcc</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## |---------|---------|---------|---------|=========================================                                          </span></span></code></pre>
 <p>Next, we load the occurrence data to be evaluated, and take a look at
 the structure required for the analysis. Note that sampling years need
 to correspond to the years used to build the naturalness map for the
 analysis to make the most sense.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># load the CSV file</span></span>
 <span><span class="va">spOcc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="op">)</span>, </span>
 <span>                                    <span class="st">"data"</span>, </span>
@@ -151,7 +148,7 @@ analysis to make the most sense.</p>
 <span>                          sep <span class="op">=</span> <span class="st">";"</span>, h<span class="op">=</span><span class="cn">T</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># look at data structure</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">spOcc</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">spOcc</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                 Species Year Abundance      X       Y</span></span>
 <span><span class="co">## 1         Bufo spinosus 2015         1 259519 6807029</span></span>
 <span><span class="co">## 2       Pelophylax spp. 2015         1 259519 6807029</span></span>
@@ -163,18 +160,18 @@ analysis to make the most sense.</p>
 total of 5 columns: species detected, sampling year, abundance detected,
 and geographic coordinates (X,Y). We make sure that all rows contain
 geographic coordinates.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># eliminate points with missing coordinates</span></span>
 <span><span class="va">missingcoord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">spOcc</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span> <span class="op">|</span> <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
 <span><span class="va">spOcc</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/compound.html" class="external-link">%&lt;&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span> <span class="op">|</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">missingcoord</span>, <span class="st">"point(s) were eliminated because of missing coordinates"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## [1] "0 point(s) were eliminated because of missing coordinates"</span></span></code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">missingcoord</span>, <span class="st">"species point(s) were eliminated because of missing coordinates"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "0 species point(s) were eliminated because of missing coordinates"</span></span></code></pre>
 <p>At this point, it is useful to plot the data to make sure the two
 datasets use the same coordinate system and everything looks as
 expected.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">tidyterra</span><span class="fu">::</span><span class="fu"><a href="https://dieghernan.github.io/tidyterra/reference/geom_spatraster.html" class="external-link">geom_spatraster</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">rast_to_plot</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tidyterra</span><span class="fu">::</span><span class="fu"><a href="https://dieghernan.github.io/tidyterra/reference/geom_spatraster.html" class="external-link">geom_spatraster</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ras_brittany</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">spOcc</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">X</span>, y <span class="op">=</span> <span class="va">Y</span>, color <span class="op">=</span> <span class="va">Year</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_colour_gradient</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%.0f"</span>, <span class="va">x</span><span class="op">)</span>,</span>
 <span>                        low <span class="op">=</span> <span class="st">"darkgray"</span>, high <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -182,30 +179,29 @@ expected.</p>
 <span>                                   breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">325</span>, <span class="fl">550</span><span class="op">)</span>,</span>
 <span>                                   labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span><span class="op">)</span>,</span>
 <span>                                   name <span class="op">=</span> <span class="st">"Naturalness"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## SpatRaster resampled to ncells = 501050</span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #0000BB;">&lt;SpatRaster&gt;</span> resampled to <span style="color: #00BB00;">500835</span> cells.</span></span></code></pre>
 <p><img src="01_SSI_SCI_Brittany_files/figure-html/plot%20map-1.png" width="960"></p>
 </div>
 <div class="section level3">
 <h3 id="ssi-calculation">SSI calculation<a class="anchor" aria-label="anchor" href="#ssi-calculation"></a>
 </h3>
-<p>The function was designed to calculate SSI automatically from a data
-set (for a taxon, a territory and a period). Several raster resolutions
-can be evaluated in a row.</p>
+<p>The function was designed to calculate SSI automatically from a
+dataset (for a taxon, a territory and a period). Several raster
+resolutions can be evaluated in a row.</p>
 <p>A null distribution is generated by randomly selecting sites within
 the species range. The effect of the studied gradient is measured by the
 effect size between the simulated and the observed species
-distributions, repeated n times. A synanthropy score, the SSI is
-assigned to each species based on the average difference between the
-null and observed distributions (from 1 to 10).</p>
+distributions, repeated n times. A synanthropy score (SSI) is assigned
+to each species based on the average difference between the null and
+observed distributions (from 1 to 10).</p>
 <p>Here, we execute the function for 3 resolutions (100, 200, 250), with
 500 simulations each. Each species must have been found in a minimum of
 30 cells to be evaluated (threshold argument). If you are in interactive
 mode, you will be prompted to validate the species list detected in the
 dataset. Make sure that there are no typos or synonyms, as each species
-will be considered separately for the analyses. A warning message may
-pop up but will not influence the process.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ssi_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ssi.html">ssi</a></span><span class="op">(</span>r <span class="op">=</span> <span class="va">ras_raw</span>, </span>
+will be considered separately for the analyses.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ssi_results</span> <span class="op">&lt;-</span> <span class="fu">SynAnthrop</span><span class="fu">::</span><span class="fu"><a href="../reference/ssi.html">ssi</a></span><span class="op">(</span>r <span class="op">=</span> <span class="va">ras_brittany</span>, </span>
 <span>                   resolution <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">250</span><span class="op">)</span>,</span>
 <span>                   data <span class="op">=</span> <span class="va">spOcc</span>,  </span>
 <span>                   sim <span class="op">=</span> <span class="fl">500</span>, </span>
@@ -228,10 +224,11 @@ pop up but will not influence the process.</p>
 <span><span class="co">## Rana temporaria</span></span>
 <span><span class="co">## Salamandra salamandra</span></span>
 <span><span class="co">## Triturus marmoratus</span></span>
-<span><span class="co">## 2023-10-10 14:10:55 - Aggregate naturalness raster cells at resolution 100 (this step may take a few minutes)</span></span>
-<span><span class="co">## 0 observation(s) were eliminated because of mismatch with the raster file</span></span></code></pre>
-<pre><code><span><span class="co">## Warning in ks.defaults(x = x, w = w, binned = binned, bgridsize = bgridsize, : Weights don't sum to sample size - they have been scaled accordingly</span></span></code></pre>
-<pre><code><span><span class="co">## Species that will be evaluated are:</span></span>
+<span><span class="co">## 2024-07-15 14:05:56.545618 - Aggregate naturalness raster cells at resolution 100 .</span></span>
+<span><span class="co">## 2024-07-15 14:06:02.947151 1 observation(s) were eliminated because of missing naturalness values</span></span>
+<span><span class="co">## 2024-07-15 14:06:03.221614 At this resolution, the landscape is divided into 157 * 108 cells (total = 10801 cells).</span></span>
+<span><span class="co">##  You chose to evaluate species present in more than 30 cells.</span></span>
+<span><span class="co">## Species that will be evaluated are:</span></span>
 <span><span class="co">## Alytes obstetricans</span></span>
 <span><span class="co">## Bufo spinosus</span></span>
 <span><span class="co">## Epidalea calamita</span></span>
@@ -245,40 +242,43 @@ pop up but will not influence the process.</p>
 <span><span class="co">## Rana temporaria</span></span>
 <span><span class="co">## Salamandra salamandra</span></span>
 <span><span class="co">## Triturus marmoratus</span></span>
-<span><span class="co">## 2023-10-10 14:13:34 - Generating null distributions for:</span></span>
-<span><span class="co">## 2023-10-10 14:13:34 Alytes obstetricans (1/13)</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">##  2024-07-15 14:06:09.39394 - Generating null distributions for:</span></span>
+<span><span class="co">## 2024-07-15 14:06:09.394787 Alytes obstetricans (1/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:13:47 Bufo spinosus (2/13)</span></span>
+<span><span class="co">## 2024-07-15 14:06:20.613871 Bufo spinosus (2/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:14:21 Epidalea calamita (3/13)</span></span>
+<span><span class="co">## 2024-07-15 14:07:28.018984 Epidalea calamita (3/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:14:30 Hyla arborea (4/13)</span></span>
+<span><span class="co">## 2024-07-15 14:07:33.908411 Hyla arborea (4/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:14:47 Ichthyosaura alpestris (5/13)</span></span>
+<span><span class="co">## 2024-07-15 14:07:50.066011 Ichthyosaura alpestris (5/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:14:58 Lissotriton helveticus (6/13)</span></span>
+<span><span class="co">## 2024-07-15 14:07:58.054485 Lissotriton helveticus (6/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:15:22 Pelodytes punctatus (7/13)</span></span>
+<span><span class="co">## 2024-07-15 14:08:39.896555 Pelodytes punctatus (7/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:15:31 Pelophylax kl. esculentus (8/13)</span></span>
+<span><span class="co">## 2024-07-15 14:08:50.969591 Pelophylax kl. esculentus (8/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:15:39 Pelophylax spp. (9/13)</span></span>
+<span><span class="co">## 2024-07-15 14:09:00.955529 Pelophylax spp. (9/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:16:02 Rana dalmatina (10/13)</span></span>
+<span><span class="co">## 2024-07-15 14:09:36.005279 Rana dalmatina (10/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:16:24 Rana temporaria (11/13)</span></span>
+<span><span class="co">## 2024-07-15 14:10:03.633431 Rana temporaria (11/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:16:45 Salamandra salamandra (12/13)</span></span>
+<span><span class="co">## 2024-07-15 14:11:26.439359 Salamandra salamandra (12/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:17:18 Triturus marmoratus (13/13)</span></span>
+<span><span class="co">## 2024-07-15 14:12:15.448613 Triturus marmoratus (13/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:17:34 - Calculating effect sizes...</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">##  2024-07-15 14:12:48.045467 - Calculating effect sizes...</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:26:51 Analysis finished for resolution 100 </span></span>
-<span><span class="co">## 2023-10-10 14:26:51 - Aggregate naturalness raster cells at resolution 200 (this step may take a few minutes)</span></span>
-<span><span class="co">## 0 observation(s) were eliminated because of mismatch with the raster file</span></span></code></pre>
-<pre><code><span><span class="co">## Warning in ks.defaults(x = x, w = w, binned = binned, bgridsize = bgridsize, : Weights don't sum to sample size - they have been scaled accordingly</span></span></code></pre>
-<pre><code><span><span class="co">## Species that will be evaluated are:</span></span>
+<span><span class="co">## 2024-07-15 14:21:17.634084 Analysis finished for resolution 100 </span></span>
+<span><span class="co">## 2024-07-15 14:21:17.648382 - Aggregate naturalness raster cells at resolution 200 .</span></span>
+<span><span class="co">## 2024-07-15 14:21:22.733961 0 observation(s) were eliminated because of missing naturalness values</span></span>
+<span><span class="co">## 2024-07-15 14:21:22.923874 At this resolution, the landscape is divided into 79 * 54 cells (total = 2780 cells).</span></span>
+<span><span class="co">##  You chose to evaluate species present in more than 30 cells.</span></span>
+<span><span class="co">## Species that will be evaluated are:</span></span>
 <span><span class="co">## Alytes obstetricans</span></span>
 <span><span class="co">## Bufo spinosus</span></span>
 <span><span class="co">## Epidalea calamita</span></span>
@@ -292,40 +292,43 @@ pop up but will not influence the process.</p>
 <span><span class="co">## Rana temporaria</span></span>
 <span><span class="co">## Salamandra salamandra</span></span>
 <span><span class="co">## Triturus marmoratus</span></span>
-<span><span class="co">## 2023-10-10 14:30:33 - Generating null distributions for:</span></span>
-<span><span class="co">## 2023-10-10 14:30:33 Alytes obstetricans (1/13)</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">##  2024-07-15 14:21:31.313287 - Generating null distributions for:</span></span>
+<span><span class="co">## 2024-07-15 14:21:31.457204 Alytes obstetricans (1/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:30:46 Bufo spinosus (2/13)</span></span>
+<span><span class="co">## 2024-07-15 14:21:41.492196 Bufo spinosus (2/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:31:08 Epidalea calamita (3/13)</span></span>
+<span><span class="co">## 2024-07-15 14:22:04.7834 Epidalea calamita (3/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:31:15 Hyla arborea (4/13)</span></span>
+<span><span class="co">## 2024-07-15 14:22:10.370368 Hyla arborea (4/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:31:29 Ichthyosaura alpestris (5/13)</span></span>
+<span><span class="co">## 2024-07-15 14:22:21.520041 Ichthyosaura alpestris (5/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:31:38 Lissotriton helveticus (6/13)</span></span>
+<span><span class="co">## 2024-07-15 14:22:29.794743 Lissotriton helveticus (6/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:31:55 Pelodytes punctatus (7/13)</span></span>
+<span><span class="co">## 2024-07-15 14:22:46.28786 Pelodytes punctatus (7/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:32:02 Pelophylax kl. esculentus (8/13)</span></span>
+<span><span class="co">## 2024-07-15 14:22:50.937937 Pelophylax kl. esculentus (8/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:32:09 Pelophylax spp. (9/13)</span></span>
+<span><span class="co">## 2024-07-15 14:22:56.149895 Pelophylax spp. (9/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:32:25 Rana dalmatina (10/13)</span></span>
+<span><span class="co">## 2024-07-15 14:23:11.437449 Rana dalmatina (10/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:32:41 Rana temporaria (11/13)</span></span>
+<span><span class="co">## 2024-07-15 14:23:27.414243 Rana temporaria (11/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:32:57 Salamandra salamandra (12/13)</span></span>
+<span><span class="co">## 2024-07-15 14:23:41.829262 Salamandra salamandra (12/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:33:16 Triturus marmoratus (13/13)</span></span>
+<span><span class="co">## 2024-07-15 14:24:02.807594 Triturus marmoratus (13/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:33:28 - Calculating effect sizes...</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">##  2024-07-15 14:24:12.782654 - Calculating effect sizes...</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:42:48 Analysis finished for resolution 200 </span></span>
-<span><span class="co">## 2023-10-10 14:42:48 - Aggregate naturalness raster cells at resolution 250 (this step may take a few minutes)</span></span>
-<span><span class="co">## 0 observation(s) were eliminated because of mismatch with the raster file</span></span></code></pre>
-<pre><code><span><span class="co">## Warning in ks.defaults(x = x, w = w, binned = binned, bgridsize = bgridsize, : Weights don't sum to sample size - they have been scaled accordingly</span></span></code></pre>
-<pre><code><span><span class="co">## Species that will be evaluated are:</span></span>
+<span><span class="co">## 2024-07-15 14:30:23.316278 Analysis finished for resolution 200 </span></span>
+<span><span class="co">## 2024-07-15 14:30:23.324608 - Aggregate naturalness raster cells at resolution 250 .</span></span>
+<span><span class="co">## 2024-07-15 14:30:28.9217 1 observation(s) were eliminated because of missing naturalness values</span></span>
+<span><span class="co">## 2024-07-15 14:30:29.037637 At this resolution, the landscape is divided into 65 * 44 cells (total = 1837 cells).</span></span>
+<span><span class="co">##  You chose to evaluate species present in more than 30 cells.</span></span>
+<span><span class="co">## Species that will be evaluated are:</span></span>
 <span><span class="co">## Alytes obstetricans</span></span>
 <span><span class="co">## Bufo spinosus</span></span>
 <span><span class="co">## Epidalea calamita</span></span>
@@ -339,37 +342,39 @@ pop up but will not influence the process.</p>
 <span><span class="co">## Rana temporaria</span></span>
 <span><span class="co">## Salamandra salamandra</span></span>
 <span><span class="co">## Triturus marmoratus</span></span>
-<span><span class="co">## 2023-10-10 14:46:22 - Generating null distributions for:</span></span>
-<span><span class="co">## 2023-10-10 14:46:22 Alytes obstetricans (1/13)</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">##  2024-07-15 14:30:34.206758 - Generating null distributions for:</span></span>
+<span><span class="co">## 2024-07-15 14:30:34.207478 Alytes obstetricans (1/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:46:36 Bufo spinosus (2/13)</span></span>
+<span><span class="co">## 2024-07-15 14:30:40.716446 Bufo spinosus (2/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:46:57 Epidalea calamita (3/13)</span></span>
+<span><span class="co">## 2024-07-15 14:30:58.476261 Epidalea calamita (3/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:47:04 Hyla arborea (4/13)</span></span>
+<span><span class="co">## 2024-07-15 14:31:03.460967 Hyla arborea (4/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:47:19 Ichthyosaura alpestris (5/13)</span></span>
+<span><span class="co">## 2024-07-15 14:31:11.581912 Ichthyosaura alpestris (5/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:47:28 Lissotriton helveticus (6/13)</span></span>
+<span><span class="co">## 2024-07-15 14:31:17.289627 Lissotriton helveticus (6/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:47:44 Pelodytes punctatus (7/13)</span></span>
+<span><span class="co">## 2024-07-15 14:31:32.735988 Pelodytes punctatus (7/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:47:51 Pelophylax kl. esculentus (8/13)</span></span>
+<span><span class="co">## 2024-07-15 14:31:38.179246 Pelophylax kl. esculentus (8/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:48:00 Pelophylax spp. (9/13)</span></span>
+<span><span class="co">## 2024-07-15 14:31:43.42382 Pelophylax spp. (9/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:48:16 Rana dalmatina (10/13)</span></span>
+<span><span class="co">## 2024-07-15 14:31:57.119346 Rana dalmatina (10/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:48:31 Rana temporaria (11/13)</span></span>
+<span><span class="co">## 2024-07-15 14:32:09.305768 Rana temporaria (11/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:48:46 Salamandra salamandra (12/13)</span></span>
+<span><span class="co">## 2024-07-15 14:32:21.699929 Salamandra salamandra (12/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:49:03 Triturus marmoratus (13/13)</span></span>
+<span><span class="co">## 2024-07-15 14:32:38.369961 Triturus marmoratus (13/13)</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:49:14 - Calculating effect sizes...</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">##  2024-07-15 14:32:47.737726 - Calculating effect sizes...</span></span>
 <span><span class="co">## Simulation 1/500...  100/500...  200/500...  300/500...  400/500...  500/500</span></span>
-<span><span class="co">## 2023-10-10 14:57:23 Analysis finished for resolution 250 </span></span>
-<span><span class="co">## 2023-10-10 14:57:23 All done.</span></span></code></pre>
+<span><span class="co">## 2024-07-15 14:38:56.79411 Analysis finished for resolution 250 </span></span>
+<span><span class="co">## 2024-07-15 14:38:56.80729 All done.</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="visualise-and-analyse-the-ssi-results">Visualise and analyse the SSI results<a class="anchor" aria-label="anchor" href="#visualise-and-analyse-the-ssi-results"></a>
@@ -381,38 +386,38 @@ pop up but will not influence the process.</p>
 <p>The first table contains the SSI calculated per species and
 resolution. It is a summary table containing one line per species per
 resolution, with the mean effect size, the number of simulations, and
-the SSI (1 to 10).</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sp_ssi</span> <span class="op">&lt;-</span> <span class="va">ssi_results</span><span class="op">$</span><span class="va">speciesScores</span><span class="op">)</span></span></code></pre></div>
+the SSI Index (1 to 10).</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sp_ssi</span> <span class="op">&lt;-</span> <span class="va">ssi_results</span><span class="op">$</span><span class="va">speciesScores</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 5</span></span></span>
-<span><span class="co">##   Species                   mean  nRun Index Resolution</span></span>
-<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> Alytes obstetricans     0.019<span style="text-decoration: underline;">5</span>   500     2        100</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> Bufo spinosus           0.055<span style="text-decoration: underline;">7</span>   500     2        100</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> Epidalea calamita      -<span style="color: #BB0000;">0.510</span>    500    10        100</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">4</span> Hyla arborea            0.014<span style="text-decoration: underline;">6</span>   500     2        100</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">5</span> Ichthyosaura alpestris -<span style="color: #BB0000;">0.036</span><span style="color: #BB0000; text-decoration: underline;">8</span>   500     3        100</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">6</span> Lissotriton helveticus -<span style="color: #BB0000;">0.098</span><span style="color: #BB0000; text-decoration: underline;">3</span>   500     4        100</span></span></code></pre>
+<span><span class="co">##   Species                    mean  nRun Index Resolution</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> Alytes obstetricans     0.029<span style="text-decoration: underline;">3</span>    500     2        100</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> Bufo spinosus           0.057<span style="text-decoration: underline;">8</span>    500     2        100</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> Epidalea calamita      -<span style="color: #BB0000;">0.447</span>     500    10        100</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> Hyla arborea            0.003<span style="text-decoration: underline;">89</span>   500     3        100</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span> Ichthyosaura alpestris -<span style="color: #BB0000;">0.058</span><span style="color: #BB0000; text-decoration: underline;">4</span>    500     4        100</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span> Lissotriton helveticus -<span style="color: #BB0000;">0.108</span>     500     4        100</span></span></code></pre>
 <p>The second table is a data.frame compiling the effect sizes (effsize)
 calculated for each comparison of simulated (Null) and observed data,
 for each species and resolution. The sample sizes for simulated (n1) and
 observed (n2) data are specified, as well as the magnitude of the effect
 size (negligible &lt; small &lt; moderate &lt; large) provided by
 <code><a href="https://rpkgs.datanovia.com/rstatix/reference/cohens_d.html" class="external-link">rstatix::cohens_d</a></code>.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">effsize_res</span> <span class="op">&lt;-</span> <span class="va">ssi_results</span><span class="op">$</span><span class="va">effSizes</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">effsize_res</span> <span class="op">&lt;-</span> <span class="va">ssi_results</span><span class="op">$</span><span class="va">effSizes</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 10</span></span></span>
-<span><span class="co">##   .y.   group1 group2   effsize    n1    n2 magnitude  Species    Run Resolution</span></span>
-<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;ord&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> value Null   Observed -<span style="color: #BB0000;">0.269</span>    385   385 small      Trituru…     1        100</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> value Null   Observed -<span style="color: #BB0000;">0.016</span><span style="color: #BB0000; text-decoration: underline;">3</span>  <span style="text-decoration: underline;">1</span>675  <span style="text-decoration: underline;">1</span>674 negligible Salaman…     1        100</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> value Null   Observed -<span style="color: #BB0000;">0.281</span>    930   930 small      Rana te…     1        100</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">4</span> value Null   Observed -<span style="color: #BB0000;">0.047</span><span style="color: #BB0000; text-decoration: underline;">2</span>  <span style="text-decoration: underline;">1</span>031  <span style="text-decoration: underline;">1</span>031 negligible Rana da…     1        100</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">5</span> value Null   Observed  0.072<span style="text-decoration: underline;">5</span>  <span style="text-decoration: underline;">1</span>087  <span style="text-decoration: underline;">1</span>087 negligible Pelophy…     1        100</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">6</span> value Null   Observed -<span style="color: #BB0000;">0.046</span><span style="color: #BB0000; text-decoration: underline;">0</span>   134   134 negligible Pelophy…     1        100</span></span></code></pre>
+<span><span class="co">##   .y.   group1 group2    effsize    n1    n2 magnitude  Species   Run Resolution</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;ord&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> value Null   Observed -<span style="color: #BB0000;">0.216</span>     391   391 small      Tritur…     1        100</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> value Null   Observed  0.010<span style="text-decoration: underline;">7</span>   <span style="text-decoration: underline;">1</span>705  <span style="text-decoration: underline;">1</span>705 negligible Salama…     1        100</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> value Null   Observed -<span style="color: #BB0000;">0.213</span>     949   949 small      Rana t…     1        100</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> value Null   Observed -<span style="color: #BB0000;">0.007</span><span style="color: #BB0000; text-decoration: underline;">68</span>  <span style="text-decoration: underline;">1</span>028  <span style="text-decoration: underline;">1</span>028 negligible Rana d…     1        100</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span> value Null   Observed  0.057<span style="text-decoration: underline;">8</span>   <span style="text-decoration: underline;">1</span>087  <span style="text-decoration: underline;">1</span>087 negligible Peloph…     1        100</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span> value Null   Observed  0.015<span style="text-decoration: underline;">2</span>    131   131 negligible Peloph…     1        100</span></span></code></pre>
 <p>Here we combine these two tables to visualize effect sizes and SSI
 obtained with the resolution 100.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># keep only data for resolution 100</span></span>
 <span><span class="co"># associate the SSI to the detailed effect sizes</span></span>
 <span><span class="va">sub_effsize_res</span> <span class="op">&lt;-</span> <span class="va">effsize_res</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
@@ -420,7 +425,7 @@ obtained with the resolution 100.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">sp_ssi</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Species"</span>, <span class="st">"Resolution"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># make the score a factor</span></span>
-<span><span class="va">sub_effsize_res</span><span class="op">$</span><span class="va">Index</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">sub_effsize_res</span><span class="op">$</span><span class="va">Index</span><span class="op">)</span></span>
+<span><span class="va">sub_effsize_res</span><span class="op">$</span><span class="va">Index</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/is.bool.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">sub_effsize_res</span><span class="op">$</span><span class="va">Index</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># plot the results</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">sub_effsize_res</span>, </span>
@@ -434,7 +439,7 @@ obtained with the resolution 100.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Effect size"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"Species"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.title.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.9</span>, <span class="fl">0.2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position.inside <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.9</span>, <span class="fl">0.2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="01_SSI_SCI_Brittany_files/figure-html/visualize%20SSI%20for%20resolution%20100-1.png" width="960"></p>
 <p>Based on this plot, we observe that species have contrasted SSI.
@@ -452,8 +457,8 @@ sizes along with Bufo spinosus.</p>
 data aggregation operated during the process. We create a graph that
 allows the comparison of scores and species ranks across data
 resolutions.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sp_ssi</span><span class="op">$</span><span class="va">Resolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">sp_ssi</span><span class="op">$</span><span class="va">Resolution</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sp_ssi</span><span class="op">$</span><span class="va">Resolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/is.bool.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">sp_ssi</span><span class="op">$</span><span class="va">Resolution</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">CGPfunctions</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CGPfunctions/man/newggslopegraph.html" class="external-link">newggslopegraph</a></span><span class="op">(</span>dataframe <span class="op">=</span> <span class="va">sp_ssi</span>,</span>
 <span>                <span class="va">Resolution</span>,</span>
@@ -474,21 +479,21 @@ suggests that the evaluation is robust to data aggregation.</p>
 </h4>
 <p>Finally, the third table contains all the points simulated and
 observed.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">points</span> <span class="op">&lt;-</span> <span class="va">ssi_results</span><span class="op">$</span><span class="va">samplesList</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##    Cell simulation             Species variable        x       y Resolution</span></span>
-<span><span class="co">## 1 10106          1 Triturus marmoratus     Null 378047.6 6752984        100</span></span>
-<span><span class="co">## 2  3653          1 Triturus marmoratus     Null 156047.6 6836984        100</span></span>
-<span><span class="co">## 3  6615          1 Triturus marmoratus     Null 342047.6 6798984        100</span></span>
-<span><span class="co">## 4  9897          1 Triturus marmoratus     Null 262047.6 6754984        100</span></span>
-<span><span class="co">## 5 10640          1 Triturus marmoratus     Null 238047.6 6744984        100</span></span>
-<span><span class="co">## 6  8495          1 Triturus marmoratus     Null 176047.6 6772984        100</span></span></code></pre>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">points</span> <span class="op">&lt;-</span> <span class="va">ssi_results</span><span class="op">$</span><span class="va">samplesList</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##    cell simulation             Species variable        x       y Resolution</span></span>
+<span><span class="co">## 1  5374          1 Triturus marmoratus     Null 154207.6 6833184        100</span></span>
+<span><span class="co">## 2 12876          1 Triturus marmoratus     Null 254207.6 6741184        100</span></span>
+<span><span class="co">## 3 12438          1 Triturus marmoratus     Null 350207.6 6747184        100</span></span>
+<span><span class="co">## 4  2331          1 Triturus marmoratus     Null 224207.6 6871184        100</span></span>
+<span><span class="co">## 5  6501          1 Triturus marmoratus     Null 140207.6 6819184        100</span></span>
+<span><span class="co">## 6 12708          1 Triturus marmoratus     Null 242207.6 6743184        100</span></span></code></pre>
 <p>We can visualize the locations of observations and of one set of
 randomly selected sites for each species.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># we select one resolution, one set of simulated points, and the observed points</span></span>
 <span><span class="va">sub_points</span> <span class="op">&lt;-</span> <span class="va">points</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Resolution</span> <span class="op">==</span> <span class="st">"100"</span>,</span>
-<span>                                <span class="va">simulation</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"no"</span><span class="op">)</span><span class="op">)</span></span>
+<span>                                <span class="va">simulation</span> <span class="op"><a href="https://rspatial.github.io/terra/reference/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="st">"no"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">sub_points</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span>, color <span class="op">=</span> <span class="va">variable</span><span class="op">)</span>, </span>
@@ -499,6 +504,8 @@ randomly selected sites for each species.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>color <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Points"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="va">.</span> <span class="op">~</span> <span class="va">Species</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: Removed 602 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">## (`geom_point()`).</span></span></code></pre>
 <p><img src="01_SSI_SCI_Brittany_files/figure-html/plot%20distribution%20map-1.png" width="960"></p>
 </div>
 </div>
@@ -524,11 +531,11 @@ Rennes) between 2000 and 2010.</p>
 <p>We load the dataset and take a look at it. Its structure is similar
 to that of the previous dataset, with columns for species names, year,
 and site of sampling, abundance, and XY coordinates.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ex_com</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"data"</span>, </span>
 <span>                               <span class="st">"amphibiansBrittany"</span>, </span>
 <span>                               <span class="st">"Amphibian_community_MNIE.csv"</span><span class="op">)</span>, sep<span class="op">=</span><span class="st">";"</span>, h<span class="op">=</span><span class="cn">T</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ex_com</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ex_com</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                  Species      X       Y Abundance Years     Site</span></span>
 <span><span class="co">## 1          Bufo spinosus 357337 6783846         1  2010 Site 136</span></span>
 <span><span class="co">## 2    Pelodytes punctatus 348398 6785920         1  2010  Site 58</span></span>
@@ -539,20 +546,20 @@ and site of sampling, abundance, and XY coordinates.</p>
 <p>Because not all species were attributed a SSI based on the threshold
 number applied, we need to check whether some species will not have a
 SSI in this community.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># species that are in the community dataset, that are not in the SSI dataset</span></span>
 <span><span class="va">sub_sp_ssi</span> <span class="op">&lt;-</span> <span class="va">sp_ssi</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Resolution</span> <span class="op">==</span> <span class="st">"100"</span><span class="op">)</span></span>
-<span><span class="op">(</span><span class="va">unevaluated_species</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ex_com</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">sub_sp_ssi</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">(</span><span class="va">unevaluated_species</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">ex_com</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span>, <span class="fu"><a href="https://rspatial.github.io/terra/reference/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">sub_sp_ssi</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "Triturus cristatus"   "Lissotriton vulgaris" "Pelophylax lessonae"</span></span></code></pre>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># total number of sites sampled</span></span>
-<span><span class="va">nsites</span> <span class="op">&lt;-</span> <span class="va">ex_com</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">Site</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">nsites</span> <span class="op">&lt;-</span> <span class="va">ex_com</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">Site</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/dimensions.html" class="external-link">nrow</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># proportion of communities these species are present in</span></span>
 <span><span class="va">ex_com</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Species</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">unevaluated_species</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Species</span> <span class="op"><a href="https://rspatial.github.io/terra/reference/match.html" class="external-link">%in%</a></span> <span class="va">unevaluated_species</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">Site</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="op">)</span><span class="op">/</span> <span class="va">nsites</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://rspatial.github.io/terra/reference/dimensions.html" class="external-link">nrow</a></span><span class="op">(</span><span class="op">)</span><span class="op">/</span> <span class="va">nsites</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 0.3463687</span></span></code></pre>
 <p>3 species of the community dataset do not have a SSI and they are
 present in 34% of the studied communities. Community analyses must be
@@ -560,15 +567,15 @@ interpreted with this caveat in mind.</p>
 <p>We then associate previously calculated SSI at resolution 100 to each
 species, and calculate for each site the species richness, SCS, i.e. the
 mean of SSI, and SCS, i.e. the SCS weighted by species abundance.</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ex_com_evaluated</span> <span class="op">&lt;-</span> <span class="va">ex_com</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">inner_join</a></span><span class="op">(</span><span class="va">sub_sp_ssi</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">Species</span>, <span class="va">Index</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Joining with `by = join_by(Species)`</span></span></code></pre>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ex_com_sites</span> <span class="op">&lt;-</span> <span class="va">ex_com_evaluated</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ex_com_sites</span> <span class="op">&lt;-</span> <span class="va">ex_com_evaluated</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Site</span>, <span class="va">Years</span>, <span class="va">X</span>, <span class="va">Y</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>Richness <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html" class="external-link">n_distinct</a></span><span class="op">(</span><span class="va">Species</span><span class="op">)</span>,</span>
-<span>            SCS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">Index</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
-<span>            SCSw <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/weighted.mean.html" class="external-link">weighted.mean</a></span><span class="op">(</span><span class="va">Index</span>, <span class="va">Abundance</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>            SCS <span class="op">=</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/math-generics.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/summarize-generics.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">Index</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>            SCSw <span class="op">=</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/math-generics.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/weighted.mean.html" class="external-link">weighted.mean</a></span><span class="op">(</span><span class="va">Index</span>, <span class="va">Abundance</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## `summarise()` has grouped output by 'Site', 'Years', 'X'. You can override</span></span>
 <span><span class="co">## using the `.groups` argument.</span></span></code></pre>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 7</span></span></span>
@@ -576,11 +583,11 @@ mean of SSI, and SCS, i.e. the SCS weighted by species abundance.</p>
 <span><span class="co">##   Site     Years      X       Y Richness   SCS  SCSw</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">1</span> Site 1    <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">335</span>076 6<span style="text-decoration: underline;">788</span>565        3  3.33  3.2 </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> Site 10   <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">340</span>610 6<span style="text-decoration: underline;">790</span>480        5  3.4   3.4 </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> Site 100  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>549 6<span style="text-decoration: underline;">778</span>613        5  3.6   3.78</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">4</span> Site 101  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>550 6<span style="text-decoration: underline;">778</span>573        3  3.33  3.33</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> Site 10   <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">340</span>610 6<span style="text-decoration: underline;">790</span>480        5  3.8   3.8 </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> Site 100  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>549 6<span style="text-decoration: underline;">778</span>613        5  3.8   3.89</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> Site 101  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>550 6<span style="text-decoration: underline;">778</span>573        3  3.67  3.67</span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">5</span> Site 102  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>577 6<span style="text-decoration: underline;">780</span>908        3  2.67  3.54</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">6</span> Site 103  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>641 6<span style="text-decoration: underline;">778</span>430        4  2.25  2.84</span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span> Site 103  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>641 6<span style="text-decoration: underline;">778</span>430        4  2.75  3.74</span></span></code></pre>
 <p>We also calculated the Synanthropy Community Index (SCI), an
 equivalent of the <a href="https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecs2.2825" class="external-link">Floristic
 Quality Index</a> to account for variation of species richness, using
@@ -588,40 +595,40 @@ the following formula :</p>
 <p><span class="math display">\[
 SCI = SCS(√ richness)
 \]</span></p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ex_com_sites</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/compound.html" class="external-link">%&lt;&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>SCI <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">SCS</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">Richness</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
-<span>                        SCIw <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">SCSw</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">Richness</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ex_com_sites</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/compound.html" class="external-link">%&lt;&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>SCI <span class="op">=</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/math-generics.html" class="external-link">round</a></span><span class="op">(</span><span class="va">SCS</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">Richness</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>                        SCIw <span class="op">=</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/math-generics.html" class="external-link">round</a></span><span class="op">(</span><span class="va">SCSw</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">Richness</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ex_com_sites</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rspatial.github.io/terra/reference/headtail.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ex_com_sites</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 9</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Groups:   Site, Years, X [6]</span></span></span>
 <span><span class="co">##   Site     Years      X       Y Richness   SCS  SCSw   SCI  SCIw</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">1</span> Site 1    <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">335</span>076 6<span style="text-decoration: underline;">788</span>565        3  3.33  3.2   5.77  5.54</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> Site 10   <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">340</span>610 6<span style="text-decoration: underline;">790</span>480        5  3.4   3.4   7.6   7.6 </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> Site 100  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>549 6<span style="text-decoration: underline;">778</span>613        5  3.6   3.78  8.05  8.45</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">4</span> Site 101  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>550 6<span style="text-decoration: underline;">778</span>573        3  3.33  3.33  5.77  5.77</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> Site 10   <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">340</span>610 6<span style="text-decoration: underline;">790</span>480        5  3.8   3.8   8.5   8.5 </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> Site 100  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>549 6<span style="text-decoration: underline;">778</span>613        5  3.8   3.89  8.5   8.7 </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> Site 101  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>550 6<span style="text-decoration: underline;">778</span>573        3  3.67  3.67  6.36  6.36</span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">5</span> Site 102  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>577 6<span style="text-decoration: underline;">780</span>908        3  2.67  3.54  4.62  6.13</span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">6</span> Site 103  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>641 6<span style="text-decoration: underline;">778</span>430        4  2.25  2.84  4.5   5.68</span></span></code></pre>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span> Site 103  <span style="text-decoration: underline;">2</span>010 <span style="text-decoration: underline;">351</span>641 6<span style="text-decoration: underline;">778</span>430        4  2.75  3.74  5.5   7.48</span></span></code></pre>
 </div>
 <div class="section level4">
 <h4 id="map-the-results">Map the results<a class="anchor" aria-label="anchor" href="#map-the-results"></a>
 </h4>
 <p>We can now visualize our new index.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create spatial objects</span></span>
 <span><span class="va">ex_com_map</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ex_com_sites</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span>, crs <span class="op">=</span> <span class="fl">2154</span><span class="op">)</span></span>
-<span><span class="va">rast_to_plot2</span> <span class="op">&lt;-</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/terra/man/crop.html" class="external-link">crop</a></span><span class="op">(</span><span class="va">rast_to_plot</span>, <span class="va">ex_com_map</span><span class="op">)</span></span>
+<span><span class="va">ras_com</span> <span class="op">&lt;-</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crop.html" class="external-link">crop</a></span><span class="op">(</span><span class="va">ras_brittany</span>, <span class="va">ex_com_map</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Plot the map</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">tidyterra</span><span class="fu">::</span><span class="fu"><a href="https://dieghernan.github.io/tidyterra/reference/geom_spatraster.html" class="external-link">geom_spatraster</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">rast_to_plot2</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">tidyterra</span><span class="fu">::</span><span class="fu"><a href="https://dieghernan.github.io/tidyterra/reference/geom_spatraster.html" class="external-link">geom_spatraster</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ras_com</span>, alpha <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ex_com_map</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>color <span class="op">=</span> <span class="va">SCIw</span>, size <span class="op">=</span> <span class="va">Richness</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_colour_gradient</a></span><span class="op">(</span>low <span class="op">=</span> <span class="st">"yellow"</span>, high <span class="op">=</span> <span class="st">"darkgreen"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">tidyterra</span><span class="fu">::</span><span class="fu"><a href="https://dieghernan.github.io/tidyterra/reference/scale_whitebox.html" class="external-link">scale_fill_whitebox_c</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"muted"</span>, direction<span class="op">=</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Amphibian communities in ponds"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## SpatRaster resampled to ncells = 501102</span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #0000BB;">&lt;SpatRaster&gt;</span> resampled to <span style="color: #00BB00;">501102</span> cells.</span></span></code></pre>
 <p><img src="01_SSI_SCI_Brittany_files/figure-html/map%20SCS%20and%20SCI-1.png" width="960"></p>
 <p>On this map, the background shows the naturalness index with lower
 (red) values indicating low naturalness and higher (blue) values
@@ -685,7 +692,7 @@ sensitivity to anthropisation, R package version 0.1.1, <a href="https://github.
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
 </div>
 
       </footer>
