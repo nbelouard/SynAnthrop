@@ -18,7 +18,9 @@ The analysis is based on the comparison of the observed distribution of species 
 
 ### If you wish to visualize the SSI tutorial only
 
-Downloading the PDF tutorial available in the vignettes folder of <a href= "https://github.com/lomorel/SynAnthrop/">the SynAnthrop GitHub repository</a>  
+2 options:  
+* Access the "Articles" tab of <a href= "https://lomorel.github.io/SynAnthrop">the SynAnthrop GitHub site</a>  
+* Download the PDF tutorial in the vignettes folder of <a href= "https://github.com/lomorel/SynAnthrop/">the SynAnthrop GitHub repository</a>  
 
 
 ### If you wish to install the package and execute the tutorial
@@ -32,10 +34,10 @@ Access the content of the package by opening the `SynAnthrop.Rproj` file in Rstu
 ```
 devtools::install()
 ```
-Finally, open the tutorial in the `vignettes` folder, and execute the code chunks.
+Finally, open the tutorial file (.Rmd) in the `vignettes` folder, and execute the code chunks.
 
 
-### If you wish to use the package functions only
+### If you wish to use the package functions only, without using the tutorial
 Install the package by typing the following line of code in the R console:
 
 ``` 

@@ -107,6 +107,21 @@ If you are in interactive mode, you will be prompted to validate the species lis
 
 ```{r execute ssi function}
 
+SynAnthrop::ssi(r = ras_brittany, 
+               resolution = c(100, 200, 250),
+               data = spOcc,  
+               sim = 500, 
+               threshold = 30)
+```
+
+Four different Pelophylax species are found in the dataset. Species determination is delicate for this genus, so we abort the run and group them as "Pelophylax spp."
+
+```{r group Pelophylax sp}
+spOcc %<>% mutate(Species = recode(Species, 
+                                   "Pelophylax kl. esculentus" = "Pelophylax spp.",
+                                   "Pelophylax lessonae" = "Pelophylax spp.",
+                                   "Pelophylax ridibundus" = "Pelophylax spp.")) 
+
 ssi_results <- SynAnthrop::ssi(r = ras_brittany, 
                    resolution = c(100, 200, 250),
                    data = spOcc,  
